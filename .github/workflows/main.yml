@@ -54,5 +54,5 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./  # Deploys the entire Laravel project
-        server-dir: /public_html/asn.oktavianus.xyz  # Change this to your Laravel directory in cPanel
+        server-dir: /public_html/asn.oktavianus.xyz/  # Change this to your Laravel directory in cPanel
 
