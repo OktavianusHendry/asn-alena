@@ -24,7 +24,10 @@ jobs:
         run: composer install --no-dev --optimize-autoloader
 
       - name: Install NPM Dependencies 📦
-        run: npm install && npm run build
+        run: npm install
+
+      - name: Build Assets with Laravel Mix 🎨
+        run: npm run prod
 
       - name: Set up Environment File ⚙️
         run: |
