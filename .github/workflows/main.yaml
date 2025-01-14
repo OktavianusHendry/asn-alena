@@ -1,0 +1,70 @@
+name: Deploy Laravel to cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code 🚚
+        uses: actions/checkout@v3
+
+      - name: Set up PHP 🛠️
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mbstring, bcmath, curl, dom, fileinfo, gd, json, mysql, pdo, pdo_mysql, zip
+          coverage: none
+
+      - name: Install Composer Dependencies 📦
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Install NPM Dependencies 📦
+        run: npm install && npm run build
+
+      - name: Set up Environment File ⚙️
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Generate Application Key 🔑
+        run: php artisan key:generate
+
+      - name: Run Migrations (if needed) 🏗️
+        run: php artisan migrate --force
+
+      - name: Clear Cache and Config 🧹
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:cache
+          php artisan view:cache
+
+      - name: Upload to cPanel 📂
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/asn.oktavianus.xyz/
+          local-dir: ./
+          exclude: |
+            **/.git**
+            **/.git*/**
+            **/node_modules/**
+            **/storage/**
+            **/vendor/**
+            **/tests/**
+            **/database/**
+            **/bootstrap/cache/**
+            **/.vscode/**
+            **/README.md**
+            **/webpack.mix.js**
+            **/vite.config.js**
+            **/phpunit.xml**
+            **/package*.json**
+            !public/**/*.htaccess
+          passive: true
