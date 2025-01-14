@@ -1,0 +1,58 @@
+name: 🚀 Deploy Laravel App on Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy Laravel App
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v3
+
+    - name: 🛠 Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'  # Change to your Laravel app's PHP version
+        extensions: mbstring, xml, ctype, json, bcmath, gd, intl, pdo_mysql
+        tools: composer:v2
+
+    - name: ⚙️ Install Dependencies
+      run: |
+        composer install --no-dev --optimize-autoloader
+
+    - name: 🔑 Set Laravel Permissions
+      run: |
+        chmod -R 775 storage bootstrap/cache
+        chmod -R 777 storage/logs
+        chmod -R 777 storage/framework
+
+    - name: 🛠 Prepare Laravel Application
+      run: |
+        cp .env.example .env  # If needed, ensure .env is present
+        php artisan key:generate
+        php artisan cache:clear
+        php artisan config:clear
+        php artisan route:clear
+        php artisan view:clear
+        php artisan config:cache
+        php artisan view:cache
+        php artisan storage:link || true  # Prevent failure if already linked
+
+    - name: 🚀 Migrate Database
+      run: |
+        php artisan migrate --force || true  # Prevent failure if no new migrations
+
+    - name: 📂 Sync files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@4.3.3
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./  # Deploys the entire Laravel project
+        server-dir: /public_html/asn.oktavianus.xyz  # Change this to your Laravel directory in cPanel
+
