@@ -36,6 +36,10 @@ jobs:
       - name: Generate Application Key 🔑
         run: php artisan key:generate
 
+      - name: Test MySQL Connection 🛠️
+        run: |
+          mysql -u ${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} -h ${{ secrets.DB_HOST }} -P 3306 -e "SHOW DATABASES;"
+
       - name: Run Migrations (if needed) 🏗️
         run: php artisan migrate --force
 
